@@ -76,10 +76,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onReceivedError(android.webkit.WebResourceRequest request,
+            public void onReceivedError(WebView view,
+                                        android.webkit.WebResourceRequest request,
                                         android.webkit.WebResourceError error) {
                 // Show offline page if Jarvis not running
-                webView.loadData(getOfflinePage(), "text/html", "UTF-8");
+                if (request.isForMainFrame()) {
+                    webView.loadData(getOfflinePage(), "text/html", "UTF-8");
+                }
             }
         });
     }
