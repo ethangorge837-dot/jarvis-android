@@ -21,45 +21,41 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
-      # 3. Télécharger le gradle-wrapper.jar manquant
+      # 3. Télécharger le gradle-wrapper.jar
       - name: 📦 Download Gradle Wrapper JAR
         run: |
-          mkdir -p jarvis-android-app/gradle/wrapper
-          curl -fL -o jarvis-android-app/gradle/wrapper/gradle-wrapper.jar \
-            "https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar"
+          mkdir -p gradle/wrapper
+          curl -fL -o gradle/wrapper/gradle-wrapper.jar "https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar"
 
-      # 4. Installer Android SDK via sdkmanager
-      - name: 📱 Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # 4. Accepter les licences SDK Android préinstallées
+      - name: 📱 Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses 2>/dev/null || true
 
-      # 5. Cache Gradle
-      - name: 💾 Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      # 6. Rendre gradlew exécutable et compiler
+      # 5. Compiler l'APK
       - name: 🔨 Build Debug APK
         run: |
-          chmod +x jarvis-android-app/gradlew
-          cd jarvis-android-app
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # 7. Upload l'APK
-      - name: 📤 Upload APK
+      # 6. Upload de l'APK générée
+      - name: 📤 Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Jarvis-Android-APK
-          path: jarvis-android-app/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      # 8. Résumé
+      # 7. Affichage du résultat
       - name: 📊 APK Info
         run: |
-          APK="jarvis-android-app/app/build/outputs/apk/debug/app-debug.apk"
-          [ -f "$APK" ] && echo "✅ APK OK — $(du -sh $APK | cut -f1)" || (echo "❌ APK manquante" && exit 1)
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$APK" ]; then
+            echo "✅ APK créée avec succès !"
+            ls -lh "$APK"
+          else
+            echo "❌ APK introuvable"
+            exit 1
+          fi
