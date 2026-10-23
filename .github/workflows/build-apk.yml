@@ -23,24 +23,18 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # 3. Télécharger le gradle-wrapper.jar
-      - name: 📦 Download Gradle Wrapper JAR
-        run: |
-          mkdir -p gradle/wrapper
-          curl -fL -o gradle/wrapper/gradle-wrapper.jar "https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar"
-
-      # 4. Accepter les licences SDK Android préinstallées
+      # 3. Accepter les licences SDK Android
       - name: 📱 Accept Android SDK licenses
         run: |
           yes | sdkmanager --licenses 2>/dev/null || true
 
-      # 5. Compiler l'APK
+      # 4. Compiler l'APK
       - name: 🔨 Build Debug APK
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # 6. Upload de l'APK générée
+      # 5. Upload de l'APK générée
       - name: 📤 Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -48,7 +42,7 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      # 7. Affichage du résultat
+      # 6. Affichage du résultat
       - name: 📊 APK Info
         run: |
           APK="app/build/outputs/apk/debug/app-debug.apk"
